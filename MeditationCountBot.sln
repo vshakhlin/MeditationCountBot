@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeditationCountBot", "MeditationCountBot\MeditationCountBot.csproj", "{4E0311E3-F338-41B8-99EE-79D01E10335F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeditationCountBot.Tests", "MeditationCountBot.Tests\MeditationCountBot.Tests.csproj", "{2035A064-B0C2-4548-AA97-73F90739FE93}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4E0311E3-F338-41B8-99EE-79D01E10335F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E0311E3-F338-41B8-99EE-79D01E10335F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E0311E3-F338-41B8-99EE-79D01E10335F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E0311E3-F338-41B8-99EE-79D01E10335F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2035A064-B0C2-4548-AA97-73F90739FE93}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2035A064-B0C2-4548-AA97-73F90739FE93}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2035A064-B0C2-4548-AA97-73F90739FE93}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2035A064-B0C2-4548-AA97-73F90739FE93}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

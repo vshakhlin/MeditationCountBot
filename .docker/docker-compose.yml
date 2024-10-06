@@ -1,0 +1,15 @@
+version: '3.9'
+
+services:
+  #container with dotnet application
+  bot:
+    container_name: meditation-bot
+    image: cr.yandex/crpm543qjn7klllqgkdl/meditation-bot:2024-07-24
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - TELEGRAM_BOT_KEY=
+    ports:
+      - "5246:5246"
+    volumes:
+      - "/var/www/meditationbot/chats:/var/www/meditationbot/chats"

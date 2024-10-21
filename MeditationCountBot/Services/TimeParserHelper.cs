@@ -23,7 +23,7 @@ public class TimeParserHelper
         var baseTime = BaseParse(text);
         if (baseTime != TimeSpan.Zero)
         {
-            if (baseTime > TimeSpan.FromHours(4))
+            if (baseTime > TimeSpan.FromHours(9))
             {
                 return TimeSpan.Zero;
             }

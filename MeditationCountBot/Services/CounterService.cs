@@ -25,14 +25,10 @@ public class CounterService : ICounterService
         _dictCounters = await _jsonLoader.LoadAllJsons();
     }
 
-    public async Task CountAndSave(string chatId, string text, string caption, User user, DateTime messageDate)
+    public async Task CountAndSave(string chatId, string text, User user, DateTime messageDate)
     {
         var counterDto = GetOrCreateCounterDto(chatId);
         var time = TimeParserHelper.ParseTime(text, counterDto.Today);
-        if (time == TimeSpan.Zero)
-        {
-            time = TimeParserHelper.ParseTime(caption, counterDto.Today);
-        }
 
         if (time != TimeSpan.Zero)
         {

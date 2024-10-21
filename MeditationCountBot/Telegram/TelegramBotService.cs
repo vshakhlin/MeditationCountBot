@@ -9,18 +9,18 @@ namespace MeditationCountBot.Telegram;
 public class TelegramBotService : ITelegramBotService
 {
     private ITelegramBotClient _botClient;
-    private readonly IServiceProvider _serviceProvider;
+    private readonly ILogger<TelegramMessageHandler> _logger;
     private readonly ICounterService _counterService;
 
-    public TelegramBotService(
-        IServiceProvider serviceProvider, ICounterService counterService)
+    public TelegramBotService(ICounterService counterService, ILogger<TelegramMessageHandler> logger)
     {
-        _serviceProvider = serviceProvider;
         _counterService = counterService;
+        _logger = logger;
     }
 
     public void Initialize(string key)
     {
+        _logger.LogInformation("Initialize bot");
         var botClient = new TelegramBotClient(key, 
             new HttpClient()
             {
@@ -40,7 +40,7 @@ public class TelegramBotService : ITelegramBotService
             AllowedUpdates = { }, // receive all update types
         };
 
-        var handler = new TelegramMessageHandler(_serviceProvider, this, _counterService);
+        var handler = new TelegramMessageHandler(this, _counterService, _logger);
         botClient.StartReceiving(
             handler.HandleUpdateAsync,
             handler.HandleErrorAsync,

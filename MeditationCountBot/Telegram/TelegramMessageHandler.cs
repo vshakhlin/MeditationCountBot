@@ -8,28 +8,26 @@ namespace MeditationCountBot.Telegram;
 
 public class TelegramMessageHandler : ITelegramMessageHandler
 {
-    private readonly IServiceProvider _serviceProvider;
+    private readonly ILogger<TelegramMessageHandler> _logger;
     private readonly ITelegramBotService _telegramBotService;
     private readonly ICounterService _counterService;
 
-    public TelegramMessageHandler(IServiceProvider serviceProvider, ITelegramBotService telegramBotService, ICounterService counterService)
+    public TelegramMessageHandler(ITelegramBotService telegramBotService, ICounterService counterService, ILogger<TelegramMessageHandler> logger)
     {
         _telegramBotService = telegramBotService;
         _counterService = counterService;
-        _serviceProvider = serviceProvider;
+        _logger = logger;
     }
 
     public Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
     {
-        // Некоторые действия
-        Console.WriteLine(JsonConvert.SerializeObject(exception));
+        _logger.LogError(JsonConvert.SerializeObject(exception));
         return Task.CompletedTask;
     }
         
     public async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
     {
-        // Некоторые действия
-        Console.WriteLine(JsonConvert.SerializeObject(update));
+        _logger.LogInformation(JsonConvert.SerializeObject(update));
         if (update.Type == UpdateType.Message)
         {
             var message = update.Message;
@@ -48,19 +46,28 @@ public class TelegramMessageHandler : ITelegramMessageHandler
                     return;
                 }
                 
-                if (message.From != null && (!string.IsNullOrEmpty(message.Text) || !string.IsNullOrEmpty(message.Caption))) 
+                if (message.From != null && (!string.IsNullOrEmpty(message.Text) || !string.IsNullOrEmpty(message.Caption)))
                 {
+                    var text = message.Text;
+                    if (string.IsNullOrEmpty(message.Text))
+                    {
+                        text = message.Caption;
+                    }
+
                     Console.WriteLine(message.From.Username);
                     Console.WriteLine(message.Text);
                     Console.WriteLine(message.Caption);
                     await _counterService.CountAndSave(
                         message.Chat.Id.ToString(),
-                        message.Text,
-                        message.Caption,
+                        text,
                         message.From,
                         message.Date.AddHours(3));
                 }
             }
+        } 
+        else if (update.Type == UpdateType.EditedMessage)
+        {
+            // TODO: implement
         }
     }
 }

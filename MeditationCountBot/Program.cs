@@ -1,8 +1,17 @@
 using MeditationCountBot.Services;
 using MeditationCountBot.Telegram;
-using MeditationCountBot.Workers;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddLogging(b =>
+{
+    var logger = new LoggerConfiguration()
+        .MinimumLevel.Debug()
+        .WriteTo.File(Path.Combine("../logs", "log.txt"), rollingInterval: RollingInterval.Day)
+        .CreateLogger();
+
+    b.AddSerilog(logger);
+});
 builder.Services.AddControllers();
 builder.Services.AddTransient<ITelegramMessageSender, TelegramMessageSender>();
 builder.Services.AddTransient<IJsonLoader, JsonLoader>();

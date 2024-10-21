@@ -6,5 +6,5 @@ public interface ICounterService
 {
     Task Initialize();
     Task Reload();
-    Task CountAndSave(string chatId, string text, string caption, User user, DateTime messageDate);
+    Task CountAndSave(string chatId, string text, User user, DateTime messageDate);
 }

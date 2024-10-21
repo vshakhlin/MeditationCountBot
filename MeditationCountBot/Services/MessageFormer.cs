@@ -69,7 +69,7 @@ public class MessageFormer : IMessageFormer
         
         if (!string.IsNullOrEmpty(participantDto.Username))
         {
-            sb.Append(" \\(@").Append(participantDto.Username).Append("\\)");
+            sb.Append(" (@").Append(participantDto.Username).Append(")");
         }
 
         return MarkdownHelper.Escape(sb.ToString());

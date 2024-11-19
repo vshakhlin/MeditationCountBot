@@ -1,67 +1,77 @@
 using System.Text.Json;
-using MeditationCountBot.Dto;
 
 namespace MeditationCountBot.Services;
 
 public class JsonLoader : IJsonLoader
 {
-    public async Task<Dictionary<string, CounterDto>> LoadAllJsons()
+    public const string ChatsPath = "../chats";
+    public const string MessageLogPath = "../messages";
+
+    private readonly ILogger<JsonLoader> _logger;
+
+    public JsonLoader(ILogger<JsonLoader> logger)
     {
-        var dictCounters = new Dictionary<string, CounterDto>();
-        var files = Directory.GetFiles("../chats");
+        _logger = logger;
+    }
+
+    public async Task<Dictionary<string, T>> LoadAllJsons<T>(string path)
+    {
+        var dictObjects = new Dictionary<string, T>();
+        var files = Directory.GetFiles(path);
         foreach (var filePath in files)
         {
-            var counterDto = await LoadFromJson(filePath);
-            if (!dictCounters.ContainsKey(counterDto.ChatId))
+            var chatId = Path.GetFileNameWithoutExtension(filePath);
+            var deserializedObj = await LoadFromJson<T>(filePath);
+            if (!dictObjects.ContainsKey(chatId))
             {
-                dictCounters.Add(counterDto.ChatId, counterDto);
+                dictObjects.Add(chatId, deserializedObj);
             }
         }
 
-        return dictCounters;
+        return dictObjects;
     }
 
-    private async Task<CounterDto> LoadFromJson(string filePath)
+    private async Task<T> LoadFromJson<T>(string filePath)
     {
         var json = await File.ReadAllTextAsync(filePath);
-        var counterDto = JsonSerializer.Deserialize<CounterDto>(json);
-        return counterDto;
+        var deserializeObj = JsonSerializer.Deserialize<T>(json);
+        return deserializeObj;
     }
 
-    public async Task SaveToJsonAsync(CounterDto counterDto, bool log = false)
+    public async Task SaveToJsonAsync<T>(string chatId, T savedDto, string path, bool log = false)
     {
-        var json = JsonSerializer.Serialize(counterDto, new JsonSerializerOptions()
+        var savedDtoJson = JsonSerializer.Serialize(savedDto, new JsonSerializerOptions()
         {
             WriteIndented = true,
         });
         if (log)
         {
-            Console.WriteLine(json);
+            _logger.LogInformation(savedDtoJson);
         }
 
         try
         {
-            var fileName = $"{counterDto.ChatId}.json";
-            await File.WriteAllTextAsync($"../chats/{fileName}", json);
+            var fileName = $"{chatId}.json";
+            await File.WriteAllTextAsync($"{path}/{fileName}", savedDtoJson);
         }
         catch (DirectoryNotFoundException dirNotFoundException)
         {
             // Create and try again
-            Console.WriteLine("DirectoryNotFoundException");
+            _logger.LogError(dirNotFoundException, ("DirectoryNotFoundException"));
         }
         catch (UnauthorizedAccessException unauthorizedAccessException)
         {
             // Show a message to the user
-            Console.WriteLine($"UnauthorizedAccessException {unauthorizedAccessException.Message}");
+            _logger.LogError(unauthorizedAccessException, $"UnauthorizedAccessException {unauthorizedAccessException.Message}");
         }
         catch (IOException ioException)
         {
-            Console.WriteLine($"IOException {ioException.Message}");
+            _logger.LogError(ioException, $"IOException {ioException.Message}");
             // Show a message to the user
         }
         catch (Exception exception)
         {
-            Console.WriteLine($"Exception {exception.Message}");
+            _logger.LogError(exception, $"Exception {exception.Message}");
             // Show general message to the user
         }
     }

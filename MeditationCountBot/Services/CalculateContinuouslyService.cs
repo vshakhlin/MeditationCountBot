@@ -16,6 +16,11 @@ public class CalculateContinuouslyService : ICalculateContinuouslyService
             {
                 participantDto.ContinuouslyDays = 0;
             }
+
+            if (participantDto.ContinuouslyDays > participantDto.BestContinuouslyDays)
+            {
+                participantDto.BestContinuouslyDays = participantDto.ContinuouslyDays;
+            }
         }
     }
 }

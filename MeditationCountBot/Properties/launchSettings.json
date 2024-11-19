@@ -12,11 +12,13 @@
     "http": {
       "commandName": "Project",
       "dotnetRunMessages": true,
-      "launchBrowser": true,
+      "launchBrowser": false,
       "applicationUrl": "http://localhost:5246",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "TELEGRAM_BOT_KEY": ""
+        "TELEGRAM_BOT_KEY": "",
+        "TELEGRAM_BOT_USERNAME": "",
+        "TIME_ZONE_OFFSET_HOURS": "3"
       }
     },
     "https": {

@@ -8,7 +8,7 @@ public class TimeParserHelper
     const string BasePattern = @"\+\s?\d+";
     const string OnlyDigitalPattern = @"\d+";
 
-    public static TimeSpan ParseTime(string text, TimeSpan total)
+    public static TimeSpan ParseTime(string text)
     {
         if (string.IsNullOrEmpty(text))
         {
@@ -29,12 +29,6 @@ public class TimeParserHelper
             }
             return baseTime;
         }
-        
-        // var onlyDigitalTime = OnlyDigitalParse(text, total);
-        // if (onlyDigitalTime != TimeSpan.Zero)
-        // {
-        //     return onlyDigitalTime;
-        // }
             
         return TimeSpan.Zero;
     }

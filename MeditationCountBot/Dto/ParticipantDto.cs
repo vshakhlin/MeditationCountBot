@@ -7,6 +7,7 @@ public class ParticipantDto
     public string FirstName { get; set; }
     public string Username { get; set; }
     public TimeSpan Total { get; set; }
+    public int BestContinuouslyDays { get; set; }
     public int ContinuouslyDays { get; set; }
     public DateTime LastMeditation { get; set; }
 }

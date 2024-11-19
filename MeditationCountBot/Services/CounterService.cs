@@ -6,13 +6,11 @@ namespace MeditationCountBot.Services;
 public class CounterService : ICounterService
 {
     private readonly IJsonLoader _jsonLoader;
-    private readonly IJsonLogger _jsonLogger;
     private Dictionary<string, CounterDto> _dictCounters;
 
-    public CounterService(IJsonLoader jsonLoader, IJsonLogger jsonLogger)
+    public CounterService(IJsonLoader jsonLoader)
     {
         _jsonLoader = jsonLoader;
-        _jsonLogger = jsonLogger;
     }
 
     public async Task Initialize()
@@ -22,37 +20,37 @@ public class CounterService : ICounterService
     
     public async Task Reload()
     {
-        _dictCounters = await _jsonLoader.LoadAllJsons();
+        _dictCounters = await _jsonLoader.LoadAllJsons<CounterDto>(JsonLoader.ChatsPath);
     }
 
-    public async Task CountAndSave(string chatId, string text, User user, DateTime messageDate)
+    public async Task<CounterDto> CountAndSave(string chatId, TimeSpan time, User user, DateTime messageDate)
     {
         var counterDto = GetOrCreateCounterDto(chatId);
-        var time = TimeParserHelper.ParseTime(text, counterDto.Today);
 
-        if (time != TimeSpan.Zero)
+        AddTimeToParticipant(counterDto, user, time, messageDate);
+
+        counterDto.Today += time;
+
+        await _jsonLoader.SaveToJsonAsync(chatId, counterDto, JsonLoader.ChatsPath);
+
+        return counterDto;
+    }
+    
+    public async Task<CounterDto> ReCountAndSave(string chatId, TimeSpan diffTime, User user)
+    {
+        var counterDto = GetOrCreateCounterDto(chatId);
+        
+        var participantDto = counterDto.Participants.FirstOrDefault(p => p.Id == user.Id);
+        if (participantDto != null)
         {
-            CountContinuouslyParticipant(counterDto, user, time, messageDate);
-            
-            await _jsonLogger.Log(counterDto.ChatId, new JsonLog()
-            {
-                UserId = user.Id,
-                MessageDate = messageDate,
-                Text = text,
-                Time = time,
-                TotalTime = counterDto.Today,
-            });
-            
-            if (DateTime.UtcNow.Date == messageDate.Date)
-            {
-                counterDto.Today += time;
-            }
-            else
-            {
-                counterDto.Today = time;
-            }
-            await _jsonLoader.SaveToJsonAsync(counterDto);
+            participantDto.Total += diffTime;
         }
+
+        counterDto.Today += diffTime;
+        
+        await _jsonLoader.SaveToJsonAsync(chatId, counterDto, JsonLoader.ChatsPath);
+
+        return counterDto;
     }
 
     private CounterDto GetOrCreateCounterDto(string chatId)
@@ -77,7 +75,7 @@ public class CounterService : ICounterService
         return counterDto;
     }
 
-    private void CountContinuouslyParticipant(CounterDto counterDto, User user, TimeSpan time, DateTime messageDate)
+    private void AddTimeToParticipant(CounterDto counterDto, User user, TimeSpan time, DateTime messageDate)
     {
         var participantDto = counterDto.Participants.FirstOrDefault(p => p.Id == user.Id);
         if (participantDto == null)

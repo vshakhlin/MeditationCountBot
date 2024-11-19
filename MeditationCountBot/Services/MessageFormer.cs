@@ -5,11 +5,13 @@ namespace MeditationCountBot.Services;
 
 public class MessageFormer : IMessageFormer
 {
-    private ITimeFormatter _timeFormatter;
+    private readonly ITimeFormatter _timeFormatter;
+    private readonly IPraiseAndCheerMessage _praiseAndCheerMessage;
 
-    public MessageFormer(ITimeFormatter timeFormatter)
+    public MessageFormer(ITimeFormatter timeFormatter, IPraiseAndCheerMessage praiseAndCheerMessage)
     {
         _timeFormatter = timeFormatter;
+        _praiseAndCheerMessage = praiseAndCheerMessage;
     }
 
     public string CreateMessage(CounterDto counterDto)
@@ -26,12 +28,12 @@ public class MessageFormer : IMessageFormer
             else if (counterDto.Today > counterDto.Yesterday)
             {
                 sb.Append(
-                    $"\nНа {counterDto.Today.TotalMinutes - counterDto.Yesterday.TotalMinutes} лучше чем вчера\\. Так держать\\! ❤️");
+                    $"\nНа {counterDto.Today.TotalMinutes - counterDto.Yesterday.TotalMinutes} лучше чем вчера\\. {_praiseAndCheerMessage.GetRandomPraiseMessage()}");
             }
             else if (counterDto.Today < counterDto.Yesterday)
             {
                 sb.Append(
-                    $"\nНа {counterDto.Yesterday.TotalMinutes - counterDto.Today.TotalMinutes} меньше чем вчера\\. Не сдавайтесь\\! 🙏");
+                    $"\nНа {counterDto.Yesterday.TotalMinutes - counterDto.Today.TotalMinutes} меньше чем вчера\\. {_praiseAndCheerMessage.GetRandomCheerMessage()}");
             }
         }
 
@@ -53,7 +55,7 @@ public class MessageFormer : IMessageFormer
 
         return sb.ToString();
     }
-
+    
     private string FormatName(ParticipantDto participantDto)
     {
         var sb = new StringBuilder();

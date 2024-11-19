@@ -15,24 +15,34 @@ builder.Services.AddLogging(b =>
 builder.Services.AddControllers();
 builder.Services.AddTransient<ITelegramMessageSender, TelegramMessageSender>();
 builder.Services.AddTransient<IJsonLoader, JsonLoader>();
-builder.Services.AddTransient<IJsonLogger, JsonLogger>();
 builder.Services.AddTransient<ICalculateContinuouslyService, CalculateContinuouslyService>();
 builder.Services.AddTransient<ITimeFormatter, TimeFormatter>();
 builder.Services.AddTransient<IMessageFormer, MessageFormer>();
+builder.Services.AddTransient<ICalculateResultService, CalculateResultService>();
+builder.Services.AddTransient<IPraiseAndCheerMessage, PraiseAndCheerMessage>();
+builder.Services.AddSingleton<IMessagesStore, MessagesStore>();
+builder.Services.AddSingleton<IDateTimeService, DateTimeService>();
 builder.Services.AddSingleton<ICounterService, CounterService>();
 builder.Services.AddSingleton<ITelegramBotService, TelegramBotService>();
 
 // builder.Services.AddHostedService<CounterWorker>();
 
 var telegramBotKey = Environment.GetEnvironmentVariable("TELEGRAM_BOT_KEY");
+var telegramBotUsername = Environment.GetEnvironmentVariable("TELEGRAM_BOT_USERNAME");
+var timeZoneOffsetHours = int.Parse(Environment.GetEnvironmentVariable("TIME_ZONE_OFFSET_HOURS"));
 
 var app = builder.Build();
+var dateTimeService = app.Services.GetRequiredService<IDateTimeService>();
+dateTimeService.Initialize(timeZoneOffsetHours);
 var telegramBotService = app.Services.GetRequiredService<ITelegramBotService>();
+telegramBotService.Initialize(telegramBotKey, telegramBotUsername);
+var messagesStore = app.Services.GetRequiredService<IMessagesStore>();
+await messagesStore.Initialize();
 var counterService = app.Services.GetRequiredService<ICounterService>();
-telegramBotService.Initialize(telegramBotKey);
 await counterService.Initialize();
+
 app.MapControllers();
-app.MapGet("/", () => "Hello World!");
+app.MapGet("/", () => "Service is started");
 app.MapGet("/message", () => "Ok");
 
 app.Run();

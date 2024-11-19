@@ -9,7 +9,11 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - TELEGRAM_BOT_KEY=
+      - TELEGRAM_BOT_USERNAME=meditationcountbot
+      - TIME_ZONE_OFFSET_HOURS=3
     ports:
-      - "5246:5246"
+      - "8080:8080"
     volumes:
-      - "/var/www/meditationbot/chats:/var/www/meditationbot/chats"
+      - /var/www/meditationbot/chats:/DockerOutput/chats
+      - /var/www/meditationbot/logs:/DockerOutput/logs
+      - /var/www/meditationbot/messages:/DockerOutput/messages

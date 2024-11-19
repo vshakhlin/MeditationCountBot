@@ -4,8 +4,13 @@ namespace MeditationCountBot.Telegram;
 
 public interface ITelegramBotService
 {
-    void Initialize(string key);
-    
+    void Initialize(string key, string username);
+
+     Task<Message> SendInstructionMessageAsync(
+        long chatIdLong,
+        CancellationToken cancellationToken,
+        int? messageId);
+        
     Task<Message> SendStartOrHelpMessageAsync(
         long chatIdLong,
         string textKey,
@@ -20,4 +25,5 @@ public interface ITelegramBotService
         bool isComplain,
         CancellationToken cancellationToken);
 
+    string BotUsername { get; }
 }

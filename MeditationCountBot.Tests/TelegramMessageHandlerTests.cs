@@ -22,6 +22,10 @@ public class TelegramMessageHandlerTests
                     Best = TimeSpan.FromMinutes(480),
                     Yesterday = TimeSpan.FromMinutes(320),
                     Today = TimeSpan.FromMinutes(60),
+                    Settings = new SettingsDto()
+                    {
+                        TimeZone = TimeSpan.FromHours(3),
+                    },
                     Participants = new List<ParticipantDto>()
                     {
                         new ParticipantDto()
@@ -103,7 +107,7 @@ public class TelegramMessageHandlerTests
         var mockJsonLoaderForMessagesStore = GetMockJsonLoaderForMessagesStore();
         var mockDateTimeService = new Mock<IDateTimeService>();
         var mockBotClient = new Mock<ITelegramBotClient>();
-        var counterService = new CounterService(mockJsonLoader.Object);
+        var counterService = new CounterService(mockJsonLoader.Object, mockDateTimeService.Object);
         await counterService.Initialize();
         var messagesStore = new MessagesStore(mockJsonLoaderForMessagesStore.Object);
         await messagesStore.Initialize();
@@ -114,7 +118,6 @@ public class TelegramMessageHandlerTests
             mockTelegramBotService.Object,
             counterService,
             Mock.Of<ILogger<TelegramMessageHandler>>(),
-            mockDateTimeService.Object,
             messagesStore);
 
         await telegramMessageHandler.HandleUpdateAsync(mockBotClient.Object, new Update()
@@ -165,7 +168,7 @@ public class TelegramMessageHandlerTests
         var mockDateTimeService = new Mock<IDateTimeService>();
         var mockBotClient = new TelegramBotClientMock();
         
-        var counterService = new CounterService(mockJsonLoader.Object);
+        var counterService = new CounterService(mockJsonLoader.Object, mockDateTimeService.Object);
         await counterService.Initialize();
         var messagesStore = new MessagesStore(mockJsonLoaderForMessagesStore.Object);
         await messagesStore.Initialize();
@@ -176,7 +179,6 @@ public class TelegramMessageHandlerTests
             mockTelegramBotService.Object,
             counterService,
             Mock.Of<ILogger<TelegramMessageHandler>>(),
-            mockDateTimeService.Object,
             messagesStore);
 
         await telegramMessageHandler.HandleUpdateAsync(mockBotClient, new Update()
@@ -227,7 +229,7 @@ public class TelegramMessageHandlerTests
         var mockJsonLoaderForMessagesStore = GetMockJsonLoaderForMessagesStore();
         var mockDateTimeService = new Mock<IDateTimeService>();
         var mockBotClient = new Mock<ITelegramBotClient>();
-        var counterService = new CounterService(mockJsonLoader.Object);
+        var counterService = new CounterService(mockJsonLoader.Object, mockDateTimeService.Object);
         await counterService.Initialize();
         var messagesStore = new MessagesStore(mockJsonLoaderForMessagesStore.Object);
         await messagesStore.Initialize();
@@ -238,7 +240,6 @@ public class TelegramMessageHandlerTests
             mockTelegramBotService.Object,
             counterService,
             Mock.Of<ILogger<TelegramMessageHandler>>(),
-            mockDateTimeService.Object,
             messagesStore);
 
         await telegramMessageHandler.HandleUpdateAsync(mockBotClient.Object, new Update()
@@ -284,7 +285,7 @@ public class TelegramMessageHandlerTests
         var mockJsonLoaderForMessagesStore = GetMockJsonLoaderForMessagesStore();
         var mockDateTimeService = new Mock<IDateTimeService>();
         var mockBotClient = new Mock<ITelegramBotClient>();
-        var counterService = new CounterService(mockJsonLoader.Object);
+        var counterService = new CounterService(mockJsonLoader.Object, mockDateTimeService.Object);
         await counterService.Initialize();
         var messagesStore = new MessagesStore(mockJsonLoaderForMessagesStore.Object);
         await messagesStore.Initialize();
@@ -295,7 +296,6 @@ public class TelegramMessageHandlerTests
             mockTelegramBotService.Object,
             counterService,
             Mock.Of<ILogger<TelegramMessageHandler>>(),
-            mockDateTimeService.Object,
             messagesStore);
 
         await telegramMessageHandler.HandleUpdateAsync(mockBotClient.Object, new Update()
@@ -345,7 +345,7 @@ public class TelegramMessageHandlerTests
         var mockJsonLoaderForMessagesStore = GetMockJsonLoaderForMessagesStore();
         var mockDateTimeService = new Mock<IDateTimeService>();
         var mockBotClient = new Mock<ITelegramBotClient>();
-        var counterService = new CounterService(mockJsonLoader.Object);
+        var counterService = new CounterService(mockJsonLoader.Object, mockDateTimeService.Object);
         await counterService.Initialize();
         var messagesStore = new MessagesStore(mockJsonLoaderForMessagesStore.Object);
         await messagesStore.Initialize();
@@ -354,7 +354,6 @@ public class TelegramMessageHandlerTests
             Mock.Of<ITelegramBotService>(),
             counterService,
             Mock.Of<ILogger<TelegramMessageHandler>>(),
-            mockDateTimeService.Object,
             messagesStore);
 
         await telegramMessageHandler.HandleUpdateAsync(mockBotClient.Object, new Update()

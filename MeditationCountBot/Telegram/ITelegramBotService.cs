@@ -10,7 +10,7 @@ public interface ITelegramBotService
         long chatIdLong,
         CancellationToken cancellationToken,
         int? messageId);
-        
+     
     Task<Message> SendStartOrHelpMessageAsync(
         long chatIdLong,
         string textKey,

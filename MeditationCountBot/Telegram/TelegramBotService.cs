@@ -12,18 +12,15 @@ public class TelegramBotService : ITelegramBotService
     private string _username;
     private readonly ILogger<TelegramMessageHandler> _logger;
     private readonly ICounterService _counterService;
-    private readonly IDateTimeService _dateTimeService;
     private readonly IMessagesStore _messagesStore;
 
     public TelegramBotService(
         ICounterService counterService,
         ILogger<TelegramMessageHandler> logger,
-        IDateTimeService dateTimeService, 
         IMessagesStore messagesStore)
     {
         _counterService = counterService;
         _logger = logger;
-        _dateTimeService = dateTimeService;
         _messagesStore = messagesStore;
     }
 
@@ -52,7 +49,7 @@ public class TelegramBotService : ITelegramBotService
             AllowedUpdates = { }, // receive all update types
         };
 
-        var handler = new TelegramMessageHandler(this, _counterService, _logger, _dateTimeService, _messagesStore);
+        var handler = new TelegramMessageHandler(this, _counterService, _logger, _messagesStore);
         botClient.StartReceiving(
             handler.HandleUpdateAsync,
             handler.HandleErrorAsync,

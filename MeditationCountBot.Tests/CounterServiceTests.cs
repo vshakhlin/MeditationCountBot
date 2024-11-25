@@ -18,6 +18,10 @@ public class CounterServiceTests
                     Best = TimeSpan.FromMinutes(480),
                     Yesterday = TimeSpan.FromMinutes(320),
                     Today = TimeSpan.Zero,
+                    Settings = new SettingsDto()
+                    {
+                        TimeZone = TimeSpan.FromHours(8),
+                    },
                     Participants = new List<ParticipantDto>()
                     {
                         new ParticipantDto()
@@ -58,12 +62,14 @@ public class CounterServiceTests
     [Fact]
     public async Task CountAndSaveBaseTest()
     {
+        var messageDateTime = DateTime.Parse("2024-07-24T09:38:57Z");
         var mockJsonLoader = GetMockJsonLoader();
-
-        var counterService = new CounterService(mockJsonLoader.Object);
+        var mockDateTime = new Mock<IDateTimeService>();
+        mockDateTime.Setup(_ => _.GetDateTimeWithOffset(It.IsAny<DateTime>(), It.IsAny<TimeSpan>()))
+            .Returns(messageDateTime);
+        var counterService = new CounterService(mockJsonLoader.Object, mockDateTime.Object);
         await counterService.Initialize();
 
-        var messageDateTime = DateTime.Parse("2024-07-24T09:38:57Z");
         var counterDto = await counterService.CountAndSave("-1002065988567", TimeSpan.FromMinutes(15),
             new User() { Id = 453949424 }, messageDateTime);
 
@@ -84,12 +90,14 @@ public class CounterServiceTests
     [Fact]
     public async Task CountAndSaveTwiceTest()
     {
+        var messageDateTime = DateTime.Parse("2024-07-24T09:38:57Z");
         var mockJsonLoader = GetMockJsonLoader();
-
-        var counterService = new CounterService(mockJsonLoader.Object);
+        var mockDateTime = new Mock<IDateTimeService>();
+        mockDateTime.Setup(_ => _.GetDateTimeWithOffset(It.IsAny<DateTime>(), It.IsAny<TimeSpan>()))
+            .Returns(messageDateTime);
+        var counterService = new CounterService(mockJsonLoader.Object, mockDateTime.Object);
         await counterService.Initialize();
 
-        var messageDateTime = DateTime.Parse("2024-07-24T09:38:57Z");
         var counterDto1 = await counterService.CountAndSave("-1002065988567", TimeSpan.FromMinutes(15),
             new User() { Id = 453949424 }, messageDateTime);
         var counterDto2 = await counterService.CountAndSave("-1002065988567", TimeSpan.FromMinutes(20),
@@ -112,12 +120,14 @@ public class CounterServiceTests
     [Fact]
     public async Task CountAndSaveNewParticipantTest()
     {
+        var messageDateTime = DateTime.Parse("2024-07-24T09:38:57Z");
         var mockJsonLoader = GetMockJsonLoader();
-
-        var counterService = new CounterService(mockJsonLoader.Object);
+        var mockDateTime = new Mock<IDateTimeService>();
+        mockDateTime.Setup(_ => _.GetDateTimeWithOffset(It.IsAny<DateTime>(), It.IsAny<TimeSpan>()))
+            .Returns(messageDateTime);
+        var counterService = new CounterService(mockJsonLoader.Object, mockDateTime.Object);
         await counterService.Initialize();
 
-        var messageDateTime = DateTime.Parse("2024-07-24T09:38:57Z");
         var counterDto = await counterService.CountAndSave("-1002065988567", TimeSpan.FromMinutes(15), new User()
         {
             Id = 832931269,
@@ -144,12 +154,14 @@ public class CounterServiceTests
     [Fact]
     public async Task CountAndSaveNewChatTest()
     {
+        var messageDateTime = DateTime.Parse("2024-07-24T09:38:57Z");
         var mockJsonLoader = GetMockJsonLoader();
-
-        var counterService = new CounterService(mockJsonLoader.Object);
+        var mockDateTime = new Mock<IDateTimeService>();
+        mockDateTime.Setup(_ => _.GetDateTimeWithOffset(It.IsAny<DateTime>(), It.IsAny<TimeSpan>()))
+            .Returns(messageDateTime);
+        var counterService = new CounterService(mockJsonLoader.Object, mockDateTime.Object);
         await counterService.Initialize();
 
-        var messageDateTime = DateTime.Parse("2024-07-24T09:38:57Z");
         var counterDto = await counterService.CountAndSave("-455396485", TimeSpan.FromMinutes(15), new User()
         {
             Id = 832931269,
@@ -179,12 +191,14 @@ public class CounterServiceTests
     [Fact]
     public async Task ReCountAndSaveAddTest()
     {
+        var messageDateTime = DateTime.Parse("2024-07-24T09:38:57Z");
         var mockJsonLoader = GetMockJsonLoader();
-
-        var counterService = new CounterService(mockJsonLoader.Object);
+        var mockDateTime = new Mock<IDateTimeService>();
+        mockDateTime.Setup(_ => _.GetDateTimeWithOffset(It.IsAny<DateTime>(), It.IsAny<TimeSpan>()))
+            .Returns(messageDateTime);
+        var counterService = new CounterService(mockJsonLoader.Object, mockDateTime.Object);
         await counterService.Initialize();
 
-        var messageDateTime = DateTime.Parse("2024-07-24T09:38:57Z");
         var counterDto = await counterService.CountAndSave("-1002065988567", TimeSpan.FromMinutes(15),
             new User() { Id = 453949424 }, messageDateTime);
         await counterService.ReCountAndSave("-1002065988567", TimeSpan.FromMinutes(2), new User() { Id = 453949424 });
@@ -203,12 +217,14 @@ public class CounterServiceTests
     [Fact]
     public async Task ReCountAndSaveSubstractTest()
     {
+        var messageDateTime = DateTime.Parse("2024-07-24T09:38:57Z");
         var mockJsonLoader = GetMockJsonLoader();
-
-        var counterService = new CounterService(mockJsonLoader.Object);
+        var mockDateTime = new Mock<IDateTimeService>();
+        mockDateTime.Setup(_ => _.GetDateTimeWithOffset(It.IsAny<DateTime>(), It.IsAny<TimeSpan>()))
+            .Returns(messageDateTime);
+        var counterService = new CounterService(mockJsonLoader.Object, mockDateTime.Object);
         await counterService.Initialize();
 
-        var messageDateTime = DateTime.Parse("2024-07-24T09:38:57Z");
         var counterDto = await counterService.CountAndSave("-1002065988567", TimeSpan.FromMinutes(15),
             new User() { Id = 453949424 }, messageDateTime);
         await counterService.ReCountAndSave("-1002065988567", TimeSpan.FromMinutes(-15), new User() { Id = 453949424 });

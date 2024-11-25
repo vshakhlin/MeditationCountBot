@@ -36,8 +36,7 @@ public class CalculateResultService : ICalculateResultService
     
     public async Task<List<string>> CalculateTotalResultsAndSend()
     {
-        var now = _dateTimeService.GetDateTimeNow();
-        _logger.LogInformation($"Start calculation {now}");
+        _logger.LogInformation($"Start calculation {_dateTimeService.GetDateTimeUtcNow()}");
 
         var results = new List<string>();
         var dict = await _jsonLoader.LoadAllJsons<CounterDto>(JsonLoader.ChatsPath);
@@ -48,11 +47,18 @@ public class CalculateResultService : ICalculateResultService
             {
                 continue;
             }
+            
+            var now = _dateTimeService.GetDateTimeNow(counter.Settings.TimeZone);
+            if (now.Hour != 23)
+            {
+                continue;
+            }
 
             _calculateContinuouslyService.CalculateContinuouslyDays(counter, _dateTimeService.GetDateTimeUtcNow());
             var message = _messageFormer.CreateMessage(counter);
             _logger.LogInformation(message);
             
+            counter.Total += counter.Today;
             counter.Yesterday = counter.Today;
             if (counter.Best < counter.Today)
             {
@@ -72,7 +78,7 @@ public class CalculateResultService : ICalculateResultService
             }
             else
             {
-                sendResultMessage = $"Send {counter.ChatId} at {_dateTimeService.GetDateTimeNow()}";
+                sendResultMessage = $"Send {counter.ChatId} at {_dateTimeService.GetDateTimeUtcNow()}";
             }
             
             _logger.LogInformation(sendResultMessage);

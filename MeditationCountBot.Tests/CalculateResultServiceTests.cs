@@ -19,6 +19,10 @@ public class CalculateResultServiceTests
                     Best = TimeSpan.FromMinutes(480),
                     Yesterday = TimeSpan.FromMinutes(320),
                     Today = TimeSpan.FromMinutes(123),
+                    Settings = new SettingsDto()
+                    {
+                        TimeZone = TimeSpan.FromHours(3),
+                    },
                     Participants = new List<ParticipantDto>()
                     {
                         new ParticipantDto()
@@ -61,7 +65,54 @@ public class CalculateResultServiceTests
                     Best = TimeSpan.FromMinutes(100),
                     Yesterday = TimeSpan.FromMinutes(100),
                     Today = TimeSpan.Zero,
+                    Settings = new SettingsDto() { TimeZone = TimeSpan.FromHours(3)},
                     Participants = new List<ParticipantDto>()
+                }
+            },
+            {
+                "-10020659885678", new CounterDto()
+                {
+                    ChatId = "-1002065988568",
+                    Best = TimeSpan.FromMinutes(100),
+                    Yesterday = TimeSpan.FromMinutes(100),
+                    Today = TimeSpan.FromMinutes(123),
+                    Settings = new SettingsDto() { TimeZone = TimeSpan.FromHours(8)},
+                    Participants = new List<ParticipantDto>()
+                    {
+                        new ParticipantDto()
+                        {
+                            Id = 453949424,
+                            LastName = "akbayev",
+                            FirstName = "beibit",
+                            Username = null,
+                            Total = TimeSpan.FromMinutes(60),
+                            ContinuouslyDays = 1,
+                            LastMeditation = DateTime.Parse("2024-07-23T18:20:52Z")
+                        },
+                    }
+                }
+            },
+            {
+                "-10020659885679", new CounterDto()
+                {
+                    ChatId = "-1002065988569",
+                    Best = TimeSpan.FromMinutes(100),
+                    Yesterday = TimeSpan.FromMinutes(100),
+                    Today = TimeSpan.FromMinutes(123),
+                    Settings = new SettingsDto() { TimeZone = TimeSpan.FromHours(-5)},
+                    Participants = new List<ParticipantDto>()
+                    {
+                        new ParticipantDto()
+                        {
+                            Id = 453949424,
+                            LastName = "akbayev",
+                            FirstName = "beibit",
+                            Username = null,
+                            Total = TimeSpan.FromMinutes(60),
+                            ContinuouslyDays = 1,
+                            LastMeditation = DateTime.Parse("2024-07-23T18:20:52Z")
+                        },
+                    }
                 }
             }
         };
@@ -98,14 +149,18 @@ public class CalculateResultServiceTests
             {
                 IsSuccess = true,
             });
-        var messagesStore = new MessagesStore(mockJsonLoaderForMessagesStore.Object);
-        var counterService = new CounterService(mockJsonLoader.Object);
         var dateTimeService = new Mock<IDateTimeService>();
         dateTimeService.Setup(_ => _.GetDateTimeUtcNow())
             .Returns(DateTime.Parse("2024-07-24T20:58:57Z"));
-        dateTimeService.Setup(_ => _.GetDateTimeNow())
+        dateTimeService.Setup(_ => _.GetDateTimeNow(It.Is<TimeSpan>(ts => ts == TimeSpan.FromHours(3))))
             .Returns(DateTime.Parse("2024-07-24T23:58:57Z"));
-
+        dateTimeService.Setup(_ => _.GetDateTimeNow(It.Is<TimeSpan>(ts => ts == TimeSpan.FromHours(8))))
+            .Returns(DateTime.Parse("2024-07-25T04:58:57Z"));
+        dateTimeService.Setup(_ => _.GetDateTimeNow(It.Is<TimeSpan>(ts => ts == TimeSpan.FromHours(-5))))
+            .Returns(DateTime.Parse("2024-07-24T15:58:57Z"));
+        var messagesStore = new MessagesStore(mockJsonLoaderForMessagesStore.Object);
+        var counterService = new CounterService(mockJsonLoader.Object, dateTimeService.Object);
+        
         var calculateResultService = new CalculateResultService(
             messageFormatter,
             mockJsonLoader.Object,

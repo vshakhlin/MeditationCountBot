@@ -24,3 +24,8 @@ Meditate for 5 days in a row:
 Meditate for 2 days in a row:
 - Participant 5
 - etc.
+
+For read counter json-files and update on memory dictionary
+curl http://localhost:8080/api/main/reload
+For update todays calculations and send a result to chats (send message only if time now is 11 pm)
+curl http://localhost:8080/api/main/message?mode=prod

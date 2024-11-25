@@ -7,6 +7,7 @@ public interface ICounterService
 {
     Task Initialize();
     Task Reload();
+    Task UpdateSettings(string chatId, SettingsDto settings);
     Task<CounterDto> CountAndSave(string chatId, TimeSpan time, User user, DateTime messageDate);
     Task<CounterDto> ReCountAndSave(string chatId, TimeSpan diffTime, User user);
 }

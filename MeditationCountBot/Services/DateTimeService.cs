@@ -2,25 +2,18 @@ namespace MeditationCountBot.Services;
 
 public class DateTimeService : IDateTimeService
 {
-    private int _timeZoneOffsetHours; 
-    
-    public void Initialize(int timeZoneOffsetHours)
-    {
-        _timeZoneOffsetHours = timeZoneOffsetHours;
-    }
-
     public DateTime GetDateTimeUtcNow()
     {
         return DateTime.UtcNow;
     }
     
-    public DateTime GetDateTimeNow()
+    public DateTime GetDateTimeNow(TimeSpan timeZone)
     {
-        return DateTime.UtcNow.AddHours(_timeZoneOffsetHours);
+        return DateTime.UtcNow.AddHours(timeZone.Hours).AddMinutes(timeZone.Minutes);
     }
     
-    public DateTime GetDateTimeWithOffset(DateTime value)
+    public DateTime GetDateTimeWithOffset(DateTime value, TimeSpan timeZone)
     {
-        return value.AddHours(_timeZoneOffsetHours);
+        return value.AddHours(timeZone.Hours).AddMinutes(timeZone.Minutes);
     }
 }

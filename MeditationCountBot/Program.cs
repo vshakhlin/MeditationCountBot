@@ -24,22 +24,22 @@ builder.Services.AddSingleton<IMessagesStore, MessagesStore>();
 builder.Services.AddSingleton<IDateTimeService, DateTimeService>();
 builder.Services.AddSingleton<ICounterService, CounterService>();
 builder.Services.AddSingleton<ITelegramBotService, TelegramBotService>();
+builder.Services.AddSingleton<IMigrationService, MigrationService>();
 
 // builder.Services.AddHostedService<CounterWorker>();
 
 var telegramBotKey = Environment.GetEnvironmentVariable("TELEGRAM_BOT_KEY");
 var telegramBotUsername = Environment.GetEnvironmentVariable("TELEGRAM_BOT_USERNAME");
-var timeZoneOffsetHours = int.Parse(Environment.GetEnvironmentVariable("TIME_ZONE_OFFSET_HOURS"));
 
 var app = builder.Build();
-var dateTimeService = app.Services.GetRequiredService<IDateTimeService>();
-dateTimeService.Initialize(timeZoneOffsetHours);
 var telegramBotService = app.Services.GetRequiredService<ITelegramBotService>();
 telegramBotService.Initialize(telegramBotKey, telegramBotUsername);
 var messagesStore = app.Services.GetRequiredService<IMessagesStore>();
 await messagesStore.Initialize();
 var counterService = app.Services.GetRequiredService<ICounterService>();
 await counterService.Initialize();
+// var migrationService = app.Services.GetRequiredService<IMigrationService>();
+// await migrationService.Migrate();
 
 app.MapControllers();
 app.MapGet("/", () => "Service is started");

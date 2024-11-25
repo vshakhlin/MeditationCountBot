@@ -2,11 +2,9 @@ namespace MeditationCountBot.Services;
 
 public interface IDateTimeService
 {
-    void Initialize(int timeZoneOffsetHours);
-
     DateTime GetDateTimeUtcNow();
 
-    DateTime GetDateTimeNow();
+    DateTime GetDateTimeNow(TimeSpan timeZone);
 
-    DateTime GetDateTimeWithOffset(DateTime value);
+    DateTime GetDateTimeWithOffset(DateTime value, TimeSpan timeZone);
 }

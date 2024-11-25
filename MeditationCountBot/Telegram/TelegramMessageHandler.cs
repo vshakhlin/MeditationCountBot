@@ -12,20 +12,17 @@ public class TelegramMessageHandler : ITelegramMessageHandler
     private readonly ILogger<TelegramMessageHandler> _logger;
     private readonly ITelegramBotService _telegramBotService;
     private readonly ICounterService _counterService;
-    private readonly IDateTimeService _dateTimeService;
     private readonly IMessagesStore _messagesStore;
 
     public TelegramMessageHandler(
         ITelegramBotService telegramBotService,
         ICounterService counterService,
         ILogger<TelegramMessageHandler> logger,
-        IDateTimeService dateTimeService,
         IMessagesStore messagesStore)
     {
         _telegramBotService = telegramBotService;
         _counterService = counterService;
         _logger = logger;
-        _dateTimeService = dateTimeService;
         _messagesStore = messagesStore;
     }
 
@@ -70,6 +67,39 @@ public class TelegramMessageHandler : ITelegramMessageHandler
 
                     return;
                 }
+                
+                if (!string.IsNullOrEmpty(message.Text) && message.Text.ToLower().Contains(_telegramBotService.BotUsername) && message.Text.ToLower().Contains("/timezone"))
+                {
+                    var admins = await botClient.GetChatAdministratorsAsync(message.Chat.Id, cancellationToken);
+                    if (admins.Any(cm => cm.User.Id == message.From.Id))
+                    {
+                        var replaceCommand = message.Text.ToLower()
+                            .Replace("@", string.Empty)
+                            .Replace(_telegramBotService.BotUsername, string.Empty)
+                            .Replace("/timezone", string.Empty)
+                            .Trim();
+                        if (int.TryParse(replaceCommand, out var timeZoneHour))
+                        {
+                            if (timeZoneHour >= -12 && timeZoneHour <= 12)
+                            {
+                                await _counterService.UpdateSettings(chatId.ToString(), new SettingsDto()
+                                {
+                                    TimeZone = TimeSpan.FromHours(timeZoneHour),
+                                });
+
+                                await _telegramBotService.SendTextMessageAsync(
+                                    chatId.Value,
+                                    "Настройки успешно сохранены",
+                                    "ru",
+                                    null,
+                                    false,
+                                    new CancellationToken());
+                            }
+                        }
+                    }
+
+                    return;
+                }
 
                 // if (message.NewChatMembers != null && message.NewChatMembers.Any(cm => cm.Username.ToLower() == BotUsername))
                 // {
@@ -83,7 +113,6 @@ public class TelegramMessageHandler : ITelegramMessageHandler
                 
                 if (message.From != null && !message.From.IsBot && (!string.IsNullOrEmpty(message.Text) || !string.IsNullOrEmpty(message.Caption)))
                 {
-                    var messageDate = _dateTimeService.GetDateTimeWithOffset(message.Date);
                     var text = message.Text;
                     if (string.IsNullOrEmpty(message.Text))
                     {
@@ -99,7 +128,7 @@ public class TelegramMessageHandler : ITelegramMessageHandler
                             chatId.ToString(),
                             time,
                             message.From,
-                            messageDate);
+                            message.Date);
                         totalTime = counterDto.Today;
                     }
                     
@@ -107,7 +136,7 @@ public class TelegramMessageHandler : ITelegramMessageHandler
                     {
                         UserId = message.From.Id,
                         MessageId = message.MessageId,
-                        MessageDate = messageDate,
+                        MessageDate = message.Date,
                         Text = text,
                         Time = time,
                         TotalTime = totalTime,
@@ -125,7 +154,6 @@ public class TelegramMessageHandler : ITelegramMessageHandler
                 if (editedMessage.From != null &&
                     (!string.IsNullOrEmpty(editedMessage.Text) || !string.IsNullOrEmpty(editedMessage.Caption)))
                 {
-                    var messageDate = _dateTimeService.GetDateTimeWithOffset(editedMessage.Date);
                     var text = editedMessage.Text;
                     if (string.IsNullOrEmpty(editedMessage.Text))
                     {
@@ -152,7 +180,7 @@ public class TelegramMessageHandler : ITelegramMessageHandler
                         {
                             UserId = editedMessage.From.Id,
                             MessageId = editedMessage.MessageId,
-                            MessageDate = messageDate,
+                            MessageDate = editedMessage.Date,
                             Text = text,
                             Time = currentTime,
                             TotalTime = totalTime,

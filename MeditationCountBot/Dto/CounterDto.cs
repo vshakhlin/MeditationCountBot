@@ -10,5 +10,9 @@ public class CounterDto
     
     public TimeSpan Today { get; set; }
     
+    public TimeSpan Total { get; set; }
+
+    public SettingsDto Settings { get; set; }
+
     public List<ParticipantDto> Participants { get; set; }
 }

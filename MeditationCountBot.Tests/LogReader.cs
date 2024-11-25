@@ -17,7 +17,7 @@ public class LogReader
             {
                 continue;
             }
-            
+
             var logJsonStr = logLine.Substring(37) + "}";
             if (logJsonStr.StartsWith("{"))
             {
@@ -46,7 +46,6 @@ public class LogReader
                             Console.WriteLine(update.Message.Date);
                             Console.WriteLine(
                                 $"{update.Message.From.FirstName} {update.Message.From.LastName}: {text}");
-
                         }
                     }
                     else if (update.Type == UpdateType.EditedMessage)
@@ -66,8 +65,7 @@ public class LogReader
                             Console.WriteLine("-----");
                         }
                     }
-                } 
-                    
+                }
             }
         }
     }

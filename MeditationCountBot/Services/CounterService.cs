@@ -6,11 +6,13 @@ namespace MeditationCountBot.Services;
 public class CounterService : ICounterService
 {
     private readonly IJsonLoader _jsonLoader;
+    private readonly IDateTimeService _dateTimeService;
     private Dictionary<string, CounterDto> _dictCounters;
 
-    public CounterService(IJsonLoader jsonLoader)
+    public CounterService(IJsonLoader jsonLoader, IDateTimeService dateTimeService)
     {
         _jsonLoader = jsonLoader;
+        _dateTimeService = dateTimeService;
     }
 
     public async Task Initialize()
@@ -23,11 +25,19 @@ public class CounterService : ICounterService
         _dictCounters = await _jsonLoader.LoadAllJsons<CounterDto>(JsonLoader.ChatsPath);
     }
 
+    public async Task UpdateSettings(string chatId, SettingsDto settings)
+    {
+        var counterDto = GetOrCreateCounterDto(chatId);
+        counterDto.Settings = settings;
+        await _jsonLoader.SaveToJsonAsync(chatId, counterDto, JsonLoader.ChatsPath);
+    }
+    
     public async Task<CounterDto> CountAndSave(string chatId, TimeSpan time, User user, DateTime messageDate)
     {
         var counterDto = GetOrCreateCounterDto(chatId);
 
-        AddTimeToParticipant(counterDto, user, time, messageDate);
+        var messageDateTimeZone = _dateTimeService.GetDateTimeWithOffset(messageDate, counterDto.Settings.TimeZone);
+        AddTimeToParticipant(counterDto, user, time, messageDateTimeZone);
 
         counterDto.Today += time;
 
@@ -68,6 +78,10 @@ public class CounterService : ICounterService
                 Best = TimeSpan.Zero,
                 Today = TimeSpan.Zero,
                 Yesterday = TimeSpan.Zero,
+                Settings = new SettingsDto()
+                {
+                    TimeZone = TimeSpan.FromHours(3),
+                },
                 Participants = new List<ParticipantDto>()
             };
             _dictCounters.Add(chatId, counterDto);

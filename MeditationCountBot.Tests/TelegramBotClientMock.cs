@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using Telegram.Bot;
 using Telegram.Bot.Args;
 using Telegram.Bot.Exceptions;
@@ -8,29 +9,45 @@ namespace MeditationCountBot.Tests;
 
 public class TelegramBotClientMock : ITelegramBotClient
 {
-    public async Task<ChatMember[]> GetChatAdministratorsAsync(
-        ChatId chatId,
-        CancellationToken cancellationToken = default
-    )
+    public async Task<TResponse> MakeRequestAsync<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = new CancellationToken())
     {
-        return new ChatMember[]
+        if (request.MethodName == "getChatAdministrators")
         {
-            new ChatMemberAdministrator()
+            var chatAdmin = new ChatMemberAdministrator
             {
-                User =
+                IsAnonymous = false,
+                CanBeEdited = true,
+                CanChangeInfo = true,
+                CanDeleteMessages = true,
+                CanEditMessages = true,
+                CanInviteUsers = true,
+                CanManageChat = true,
+                CanManageTopics = true,
+                CanPinMessages = true,
+                CanPostMessages = true,
+                CanRestrictMembers = true,
+                CanManageVideoChats = true,
+                CanPromoteMembers = true,
+                CustomTitle = "admin",
+                User = new User
                 {
                     Id = 453949424,
                     IsBot = false,
                     LastName = "akbayev",
                     FirstName = "beibit",
-                    Username = null,
+                    Username = "",
+                    IsPremium = false,
                 }
-            }
-        };
-    }
-    
-    public Task<TResponse> MakeRequestAsync<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = new CancellationToken())
-    {
+            };
+            
+            var result = new ChatMember[]
+            {
+                chatAdmin
+            };
+            var json = JsonConvert.SerializeObject(result);
+            return await Task.FromResult(JsonConvert.DeserializeObject<TResponse>(json));
+        }
+
         throw new NotImplementedException();
     }
 

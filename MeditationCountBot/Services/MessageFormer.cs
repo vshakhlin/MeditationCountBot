@@ -1,5 +1,6 @@
 using System.Text;
 using MeditationCountBot.Dto;
+using Telegram.Bot.Extensions;
 
 namespace MeditationCountBot.Services;
 
@@ -7,17 +8,19 @@ public class MessageFormer : IMessageFormer
 {
     private readonly ITimeFormatter _timeFormatter;
     private readonly IPraiseAndCheerMessage _praiseAndCheerMessage;
-
-    public MessageFormer(ITimeFormatter timeFormatter, IPraiseAndCheerMessage praiseAndCheerMessage)
+    private readonly IMessageProvider _messageProvider;
+    
+    public MessageFormer(ITimeFormatter timeFormatter, IPraiseAndCheerMessage praiseAndCheerMessage, IMessageProvider messageProvider)
     {
         _timeFormatter = timeFormatter;
         _praiseAndCheerMessage = praiseAndCheerMessage;
+        _messageProvider = messageProvider;
     }
 
     public string CreateMessage(CounterDto counterDto)
     {
         var sb = new StringBuilder(
-            $"Общее время медитации {counterDto.Today.TotalMinutes} \\({counterDto.Today.Hours} {_timeFormatter.HoursFormat(counterDto.Today.Hours)} {counterDto.Today.Minutes} {_timeFormatter.MinutesFormat(counterDto.Today.Minutes)}\\)");
+            $"{_messageProvider.TogetherTimeMessage} {counterDto.Today.TotalMinutes} \\({counterDto.Today.Hours} {_timeFormatter.HoursFormat(counterDto.Today.Hours)} {counterDto.Today.Minutes} {_timeFormatter.MinutesFormat(counterDto.Today.Minutes)}\\)");
 
         if (counterDto.Yesterday != TimeSpan.Zero)
         {
@@ -47,7 +50,7 @@ public class MessageFormer : IMessageFormer
             if (lastDays != participantDto.ContinuouslyDays)
             {
                 lastDays = participantDto.ContinuouslyDays;
-                sb.Append($"\n\nМедитируют {lastDays} {_timeFormatter.DaysFormat(lastDays)} подряд:");    
+                sb.Append($"\n\n{_messageProvider.ContinueMessage}{lastDays} {_timeFormatter.DaysFormat(lastDays)} подряд:");    
             }
             sb.Append($"\n \\- {FormatName(participantDto)}"); 
             
@@ -74,7 +77,7 @@ public class MessageFormer : IMessageFormer
             sb.Append(" (@").Append(participantDto.Username).Append(")");
         }
 
-        return MarkdownHelper.Escape(sb.ToString());
+        return Markdown.Escape(sb.ToString());
     }
     
 }

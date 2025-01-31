@@ -1,11 +1,12 @@
-using Telegram.Bot;
+using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 
 namespace MeditationCountBot.Telegram;
 
 public interface ITelegramMessageHandler
 {
-    Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken);
+    Task HandleErrorAsync(Exception exception, HandleErrorSource source);
 
-    Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken);
+    Task HandleMessageAsync(Message msg, UpdateType type);
 }

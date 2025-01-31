@@ -1,4 +1,3 @@
-using Newtonsoft.Json;
 using Telegram.Bot;
 using Telegram.Bot.Args;
 using Telegram.Bot.Exceptions;
@@ -9,12 +8,15 @@ namespace MeditationCountBot.Tests;
 
 public class TelegramBotClientMock : ITelegramBotClient
 {
-    public async Task<TResponse> MakeRequestAsync<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = new CancellationToken())
+    private long _botId;
+
+    public async Task<TResponse> SendRequest<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = new CancellationToken())
     {
         if (request.MethodName == "getChatAdministrators")
         {
             var chatAdmin = new ChatMemberAdministrator
             {
+                
                 IsAnonymous = false,
                 CanBeEdited = true,
                 CanChangeInfo = true,
@@ -40,29 +42,42 @@ public class TelegramBotClientMock : ITelegramBotClient
                 }
             };
             
-            var result = new ChatMember[]
+            var result = new ChatMemberAdministrator[]
             {
                 chatAdmin
             };
-            var json = JsonConvert.SerializeObject(result);
-            return await Task.FromResult(JsonConvert.DeserializeObject<TResponse>(json));
+
+            return await Task.FromResult((TResponse)(object)result);
         }
 
         throw new NotImplementedException();
     }
 
-    public Task<bool> TestApiAsync(CancellationToken cancellationToken = new CancellationToken())
+    public Task<TResponse> MakeRequest<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = new CancellationToken())
     {
         throw new NotImplementedException();
     }
 
-    public Task DownloadFileAsync(string filePath, Stream destination,
-        CancellationToken cancellationToken = new CancellationToken())
+    public async Task<TResponse> MakeRequestAsync<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = new CancellationToken())
+    {
+        
+        throw new NotImplementedException();
+    }
+
+    public Task<bool> TestApi(CancellationToken cancellationToken = new CancellationToken())
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task DownloadFile(string filePath, Stream destination, CancellationToken cancellationToken = new CancellationToken())
     {
         throw new NotImplementedException();
     }
 
     public bool LocalBotServer { get; }
+
+    long ITelegramBotClient.BotId => _botId;
+
     public long? BotId { get; }
     public TimeSpan Timeout { get; set; }
     public IExceptionParser ExceptionsParser { get; set; }

@@ -2,6 +2,7 @@ using System.Text.Json;
 using MeditationCountBot.Dto;
 using MeditationCountBot.Services;
 using Moq;
+using Telegram.Bot.Extensions;
 
 namespace MeditationCountBot.Tests;
 
@@ -14,7 +15,7 @@ public class MarkdownTest
     public void EscapeUsernameTest()
     {
         var counter = JsonSerializer.Deserialize<CounterDto>(jsonCounter);
-        var messageFormer = new MessageFormer(new TimeFormatter(), Mock.Of<IPraiseAndCheerMessage>());
+        var messageFormer = new MessageFormer(new TimeFormatter(), Mock.Of<IPraiseAndCheerMessage>(), new MeditationMessageProvider());
         var message = messageFormer.CreateMessage(counter);
         Assert.NotNull(message);
         Assert.True(message.Contains("""Садыков \| Альберт \(@Sadykov\_Albert\)"""));
@@ -28,7 +29,7 @@ public class MarkdownTest
     public void EscapeTest()
     {
         var input = "text, *text*, text, text, (text), [text], [some_text with _*](http://.....) *text*, text, text, (text), [text]";
-        var escape = MarkdownHelper.Escape(input);
+        var escape = Markdown.Escape(input);
         Assert.Equal(escape, @"text, \*text\*, text, text, \(text\), \[text\], \[some\_text with \_\*\]\(http://\.\.\.\.\.\) \*text\*, text, text, \(text\), \[text\]");
     }
     

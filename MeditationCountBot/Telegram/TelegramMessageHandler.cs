@@ -1,7 +1,7 @@
+using System.Text.Json;
 using MeditationCountBot.Dto;
 using MeditationCountBot.Services;
-using Newtonsoft.Json;
-using Telegram.Bot;
+using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
@@ -26,168 +26,180 @@ public class TelegramMessageHandler : ITelegramMessageHandler
         _messagesStore = messagesStore;
     }
 
-    public Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
+    public Task HandleErrorAsync(Exception exception, HandleErrorSource source)
     {
-        _logger.LogError(JsonConvert.SerializeObject(exception));
+        _logger.LogError(JsonSerializer.Serialize(exception));
         return Task.CompletedTask;
     }
-        
-    public async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+
+    public async Task HandleMessageAsync(Message msg, UpdateType type)
     {
-        _logger.LogInformation(JsonConvert.SerializeObject(update));
-        if (update.Type == UpdateType.Message)
+        _logger.LogInformation(JsonSerializer.Serialize(msg));
+        try
         {
-            var message = update.Message;
-            var language = message?.From?.LanguageCode ?? "en";
-            var chatId = message?.Chat.Id;
-            if (chatId != null)
+            if (type == UpdateType.Message)
             {
-                if (message.Chat.Type == ChatType.Private && !string.IsNullOrEmpty(message.Text) && (message.Text.ToLower() == "/help" || message.Text.ToLower() == "/start"))
+                var message = msg;
+                var language = message?.From?.LanguageCode ?? "en";
+                var chatId = message?.Chat.Id;
+                if (chatId != null)
                 {
-                    await _telegramBotService.SendStartOrHelpMessageAsync(
-                        chatId.Value,
-                        "Help",
-                        language,
-                        cancellationToken: cancellationToken);
-                
-                    return;
-                }
-
-                if (!string.IsNullOrEmpty(message.Text) && message.Text.ToLower().Contains(_telegramBotService.BotUsername) && message.Text.ToLower().Contains("/help"))
-                {
-                    var admins = await botClient.GetChatAdministratorsAsync(message.Chat.Id, cancellationToken);
-                    if (admins.Any(cm => cm.User.Id == message.From.Id))
+                    if (message.Chat.Type == ChatType.Private && !string.IsNullOrEmpty(message.Text) &&
+                        (message.Text.ToLower() == "/help" || message.Text.ToLower() == "/start"))
                     {
-                        await _telegramBotService.SendInstructionMessageAsync(
+                        await _telegramBotService.SendStartOrHelpMessageAsync(
                             chatId.Value,
-                            cancellationToken: cancellationToken,
-                            message.MessageId);
+                            "Help",
+                            language,
+                            cancellationToken: new CancellationToken());
 
+                        return;
                     }
 
-                    return;
-                }
-                
-                if (!string.IsNullOrEmpty(message.Text) && message.Text.ToLower().Contains(_telegramBotService.BotUsername) && message.Text.ToLower().Contains("/timezone"))
-                {
-                    var admins = await botClient.GetChatAdministratorsAsync(message.Chat.Id, cancellationToken);
-                    if (admins.Any(cm => cm.User.Id == message.From.Id))
+                    if (!string.IsNullOrEmpty(message.Text) &&
+                        message.Text.ToLower().Contains(_telegramBotService.BotUsername) &&
+                        message.Text.ToLower().Contains("/help"))
                     {
-                        var replaceCommand = message.Text.ToLower()
-                            .Replace("@", string.Empty)
-                            .Replace(_telegramBotService.BotUsername, string.Empty)
-                            .Replace("/timezone", string.Empty)
-                            .Trim();
-                        if (int.TryParse(replaceCommand, out var timeZoneHour))
+                        var admins = await _telegramBotService.GetChatAdministratorsAsync(message.Chat.Id, new CancellationToken());
+                        if (admins.Any(cm => cm.User.Id == message.From.Id))
                         {
-                            if (timeZoneHour >= -12 && timeZoneHour <= 12)
-                            {
-                                await _counterService.UpdateSettings(chatId.ToString(), new SettingsDto()
-                                {
-                                    TimeZone = TimeSpan.FromHours(timeZoneHour),
-                                });
+                            await _telegramBotService.SendInstructionMessageAsync(
+                                chatId.Value,
+                                cancellationToken: new CancellationToken(),
+                                message.MessageId);
+                        }
 
-                                await _telegramBotService.SendTextMessageAsync(
-                                    chatId.Value,
-                                    "Настройки успешно сохранены",
-                                    "ru",
-                                    null,
-                                    false,
-                                    new CancellationToken());
+                        return;
+                    }
+
+                    if (!string.IsNullOrEmpty(message.Text) &&
+                        message.Text.ToLower().Contains(_telegramBotService.BotUsername) &&
+                        message.Text.ToLower().Contains("/timezone"))
+                    {
+                        var admins = await _telegramBotService.GetChatAdministratorsAsync(message.Chat.Id, new CancellationToken());
+                        if (admins.Any(cm => cm.User.Id == message.From.Id))
+                        {
+                            var replaceCommand = message.Text.ToLower()
+                                .Replace("@", string.Empty)
+                                .Replace(_telegramBotService.BotUsername, string.Empty)
+                                .Replace("/timezone", string.Empty)
+                                .Trim();
+                            if (int.TryParse(replaceCommand, out var timeZoneHour))
+                            {
+                                if (timeZoneHour >= -12 && timeZoneHour <= 12)
+                                {
+                                    await _counterService.UpdateSettings(chatId.ToString(), new SettingsDto()
+                                    {
+                                        TimeZone = TimeSpan.FromHours(timeZoneHour),
+                                    });
+
+                                    await _telegramBotService.SendTextMessageAsync(
+                                        chatId.Value,
+                                        "Настройки успешно сохранены",
+                                        "ru",
+                                        null,
+                                        false,
+                                        new CancellationToken());
+                                }
                             }
                         }
+
+                        return;
                     }
 
-                    return;
-                }
+                    // if (message.NewChatMembers != null && message.NewChatMembers.Any(cm => cm.Username.ToLower() == BotUsername))
+                    // {
+                    //     await _telegramBotService.SendHelloMessageAsync(
+                    //         chatId.Value,
+                    //         cancellationToken: cancellationToken,
+                    //         message.MessageId);
+                    //
+                    //     return;
+                    // }
 
-                // if (message.NewChatMembers != null && message.NewChatMembers.Any(cm => cm.Username.ToLower() == BotUsername))
-                // {
-                //     await _telegramBotService.SendHelloMessageAsync(
-                //         chatId.Value,
-                //         cancellationToken: cancellationToken,
-                //         message.MessageId);
-                //
-                //     return;
-                // }
-                
-                if (message.From != null && !message.From.IsBot && (!string.IsNullOrEmpty(message.Text) || !string.IsNullOrEmpty(message.Caption)))
-                {
-                    var text = message.Text;
-                    if (string.IsNullOrEmpty(message.Text))
+                    if (message.From != null && !message.From.IsBot && (!string.IsNullOrEmpty(message.Text) ||
+                                                                        !string.IsNullOrEmpty(message.Caption)))
                     {
-                        text = message.Caption;
-                    }
-
-                    var time = TimeParserHelper.ParseTime(text);
-                    var totalTime = TimeSpan.Zero;
-                    
-                    if (time != TimeSpan.Zero)
-                    {
-                        var counterDto = await _counterService.CountAndSave(
-                            chatId.ToString(),
-                            time,
-                            message.From,
-                            message.Date);
-                        totalTime = counterDto.Today;
-                    }
-                    
-                    await _messagesStore.Save(chatId.ToString(), new MessageLog
-                    {
-                        UserId = message.From.Id,
-                        MessageId = message.MessageId,
-                        MessageDate = message.Date,
-                        Text = text,
-                        Time = time,
-                        TotalTime = totalTime,
-                    });
-                }
-            }
-        } 
-        else if (update.Type == UpdateType.EditedMessage)
-        {
-            var editedMessage = update.EditedMessage;
-            if (editedMessage != null && editedMessage?.Chat.Id != null)
-            {
-                var chatId = editedMessage?.Chat.Id;
-
-                if (editedMessage.From != null &&
-                    (!string.IsNullOrEmpty(editedMessage.Text) || !string.IsNullOrEmpty(editedMessage.Caption)))
-                {
-                    var text = editedMessage.Text;
-                    if (string.IsNullOrEmpty(editedMessage.Text))
-                    {
-                        text = editedMessage.Caption;
-                    }
-
-                    var loadedMessage = _messagesStore.Load(chatId.ToString(), editedMessage.MessageId);
-                    if (loadedMessage != null)
-                    {
-                        var currentTime = TimeParserHelper.ParseTime(text);
-                        var totalTime = TimeSpan.Zero; 
-                            
-                        var diffTime = currentTime - loadedMessage.Time;
-                        if (diffTime != TimeSpan.Zero)
+                        var text = message.Text;
+                        if (string.IsNullOrEmpty(message.Text))
                         {
-                            var counterDto = await _counterService.ReCountAndSave(
+                            text = message.Caption;
+                        }
+
+                        var time = TimeParserHelper.ParseTime(text);
+                        var totalTime = TimeSpan.Zero;
+
+                        if (time != TimeSpan.Zero)
+                        {
+                            var counterDto = await _counterService.CountAndSave(
                                 chatId.ToString(),
-                                diffTime,
-                                editedMessage.From);
+                                time,
+                                message.From,
+                                message.Date);
                             totalTime = counterDto.Today;
                         }
-                        
-                        await _messagesStore.ReSave(chatId.ToString(), new MessageLog
+
+                        await _messagesStore.Save(chatId.ToString(), new MessageLog
                         {
-                            UserId = editedMessage.From.Id,
-                            MessageId = editedMessage.MessageId,
-                            MessageDate = editedMessage.Date,
+                            UserId = message.From.Id,
+                            MessageId = message.MessageId,
+                            MessageDate = message.Date,
                             Text = text,
-                            Time = currentTime,
+                            Time = time,
                             TotalTime = totalTime,
                         });
                     }
                 }
             }
+            else if (type == UpdateType.EditedMessage)
+            {
+                var editedMessage = msg;
+                if (editedMessage != null && editedMessage?.Chat.Id != null)
+                {
+                    var chatId = editedMessage?.Chat.Id;
+
+                    if (editedMessage.From != null &&
+                        (!string.IsNullOrEmpty(editedMessage.Text) || !string.IsNullOrEmpty(editedMessage.Caption)))
+                    {
+                        var text = editedMessage.Text;
+                        if (string.IsNullOrEmpty(editedMessage.Text))
+                        {
+                            text = editedMessage.Caption;
+                        }
+
+                        var loadedMessage = _messagesStore.Load(chatId.ToString(), editedMessage.MessageId);
+                        if (loadedMessage != null)
+                        {
+                            var currentTime = TimeParserHelper.ParseTime(text);
+                            var totalTime = TimeSpan.Zero;
+
+                            var diffTime = currentTime - loadedMessage.Time;
+                            if (diffTime != TimeSpan.Zero)
+                            {
+                                var counterDto = await _counterService.ReCountAndSave(
+                                    chatId.ToString(),
+                                    diffTime,
+                                    editedMessage.From);
+                                totalTime = counterDto.Today;
+                            }
+
+                            await _messagesStore.ReSave(chatId.ToString(), new MessageLog
+                            {
+                                UserId = editedMessage.From.Id,
+                                MessageId = editedMessage.MessageId,
+                                MessageDate = editedMessage.Date,
+                                Text = text,
+                                Time = currentTime,
+                                TotalTime = totalTime,
+                            });
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error while handling update");
         }
     }
 }

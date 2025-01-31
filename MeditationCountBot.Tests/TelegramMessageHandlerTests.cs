@@ -106,7 +106,6 @@ public class TelegramMessageHandlerTests
         var mockJsonLoader = GetMockJsonLoader();
         var mockJsonLoaderForMessagesStore = GetMockJsonLoaderForMessagesStore();
         var mockDateTimeService = new Mock<IDateTimeService>();
-        var mockBotClient = new Mock<ITelegramBotClient>();
         var counterService = new CounterService(mockJsonLoader.Object, mockDateTimeService.Object);
         await counterService.Initialize();
         var messagesStore = new MessagesStore(mockJsonLoaderForMessagesStore.Object);
@@ -120,9 +119,8 @@ public class TelegramMessageHandlerTests
             Mock.Of<ILogger<TelegramMessageHandler>>(),
             messagesStore);
 
-        await telegramMessageHandler.HandleUpdateAsync(mockBotClient.Object, new Update()
-        {
-            Message = new Message()
+        await telegramMessageHandler.HandleMessageAsync(
+            new Message()
             {
                 Text = $"/start",
                 From = new User()
@@ -140,8 +138,7 @@ public class TelegramMessageHandlerTests
                     Type = ChatType.Private,
                     Title = "akbayev beibit",
                 },
-            }
-        }, new CancellationToken());
+            }, UpdateType.Message);
         
         mockTelegramBotService.Verify(
             _ => _.SendStartOrHelpMessageAsync(It.Is<long>(chatId => chatId == 115601429), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
@@ -166,7 +163,6 @@ public class TelegramMessageHandlerTests
         var mockJsonLoader = GetMockJsonLoader();
         var mockJsonLoaderForMessagesStore = GetMockJsonLoaderForMessagesStore();
         var mockDateTimeService = new Mock<IDateTimeService>();
-        var mockBotClient = new TelegramBotClientMock();
         
         var counterService = new CounterService(mockJsonLoader.Object, mockDateTimeService.Object);
         await counterService.Initialize();
@@ -174,6 +170,19 @@ public class TelegramMessageHandlerTests
         await messagesStore.Initialize();
         var mockTelegramBotService = new Mock<ITelegramBotService>();
         mockTelegramBotService.SetupGet(_ => _.BotUsername).Returns("usernamebot");
+        var admin = new ChatMemberAdministrator
+        {
+            User = new User()
+            {
+                Id = 453949424,
+                IsBot = false,
+                LastName = "akbayev",
+                FirstName = "beibit",
+                Username = null,
+            }
+        };
+        mockTelegramBotService.Setup(_ => _.GetChatAdministratorsAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync([admin]);
         
         var telegramMessageHandler = new TelegramMessageHandler(
             mockTelegramBotService.Object,
@@ -181,9 +190,7 @@ public class TelegramMessageHandlerTests
             Mock.Of<ILogger<TelegramMessageHandler>>(),
             messagesStore);
 
-        await telegramMessageHandler.HandleUpdateAsync(mockBotClient, new Update()
-        {
-            Message = new Message()
+        await telegramMessageHandler.HandleMessageAsync(new Message()
             {
                 Text = "usernamebot /help",
                 From = new User()
@@ -201,8 +208,7 @@ public class TelegramMessageHandlerTests
                     Type = ChatType.Supergroup,
                     Title = "Ретрит на АЛТАЕ 11-18",
                 },
-            }
-        }, new CancellationToken());
+            }, UpdateType.Message);
         
         
         mockTelegramBotService.Verify(
@@ -228,7 +234,6 @@ public class TelegramMessageHandlerTests
         var mockJsonLoader = GetMockJsonLoader();
         var mockJsonLoaderForMessagesStore = GetMockJsonLoaderForMessagesStore();
         var mockDateTimeService = new Mock<IDateTimeService>();
-        var mockBotClient = new Mock<ITelegramBotClient>();
         var counterService = new CounterService(mockJsonLoader.Object, mockDateTimeService.Object);
         await counterService.Initialize();
         var messagesStore = new MessagesStore(mockJsonLoaderForMessagesStore.Object);
@@ -242,9 +247,7 @@ public class TelegramMessageHandlerTests
             Mock.Of<ILogger<TelegramMessageHandler>>(),
             messagesStore);
 
-        await telegramMessageHandler.HandleUpdateAsync(mockBotClient.Object, new Update()
-        {
-            Message = new Message()
+        await telegramMessageHandler.HandleMessageAsync(new Message()
             {
                 Text = "Всем доброе утро!",
                 From = new User()
@@ -262,8 +265,7 @@ public class TelegramMessageHandlerTests
                     Type = ChatType.Supergroup,
                     Title = "Ретрит на АЛТАЕ 11-18",
                 },
-            }
-        }, new CancellationToken());
+            }, UpdateType.Message);
         
         mockJsonLoader.Verify(
             _ => _.SaveToJsonAsync(It.IsAny<string>(), It.IsAny<CounterDto>(), It.IsAny<string>(), It.IsAny<bool>()),
@@ -284,7 +286,6 @@ public class TelegramMessageHandlerTests
         var mockJsonLoader = GetMockJsonLoader();
         var mockJsonLoaderForMessagesStore = GetMockJsonLoaderForMessagesStore();
         var mockDateTimeService = new Mock<IDateTimeService>();
-        var mockBotClient = new Mock<ITelegramBotClient>();
         var counterService = new CounterService(mockJsonLoader.Object, mockDateTimeService.Object);
         await counterService.Initialize();
         var messagesStore = new MessagesStore(mockJsonLoaderForMessagesStore.Object);
@@ -298,9 +299,7 @@ public class TelegramMessageHandlerTests
             Mock.Of<ILogger<TelegramMessageHandler>>(),
             messagesStore);
 
-        await telegramMessageHandler.HandleUpdateAsync(mockBotClient.Object, new Update()
-        {
-            Message = new Message()
+        await telegramMessageHandler.HandleMessageAsync(new Message()
             {
                 Text = "Доброе утро! +20",
                 From = new User()
@@ -318,8 +317,7 @@ public class TelegramMessageHandlerTests
                     Type = ChatType.Supergroup,
                     Title = "Ретрит на АЛТАЕ 11-18",
                 },
-            }
-        }, new CancellationToken());
+            }, UpdateType.Message);
         
         mockJsonLoader.Verify(
             _ => _.SaveToJsonAsync(
@@ -344,7 +342,6 @@ public class TelegramMessageHandlerTests
         var mockJsonLoader = GetMockJsonLoader();
         var mockJsonLoaderForMessagesStore = GetMockJsonLoaderForMessagesStore();
         var mockDateTimeService = new Mock<IDateTimeService>();
-        var mockBotClient = new Mock<ITelegramBotClient>();
         var counterService = new CounterService(mockJsonLoader.Object, mockDateTimeService.Object);
         await counterService.Initialize();
         var messagesStore = new MessagesStore(mockJsonLoaderForMessagesStore.Object);
@@ -356,11 +353,9 @@ public class TelegramMessageHandlerTests
             Mock.Of<ILogger<TelegramMessageHandler>>(),
             messagesStore);
 
-        await telegramMessageHandler.HandleUpdateAsync(mockBotClient.Object, new Update()
-        {
-            EditedMessage = new Message()
+        await telegramMessageHandler.HandleMessageAsync(new Message()
             {
-                MessageId = 146,
+                Id = 146,
                 Text = "Доброе утро! +20",
                 From = new User()
                 {
@@ -377,8 +372,7 @@ public class TelegramMessageHandlerTests
                     Type = ChatType.Supergroup,
                     Title = "Ретрит на АЛТАЕ 11-18",
                 },
-            }
-        }, new CancellationToken());
+            }, UpdateType.EditedMessage);
         
         mockJsonLoader.Verify(
             _ => _.SaveToJsonAsync(

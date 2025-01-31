@@ -142,7 +142,7 @@ public class CalculateResultServiceTests
         var mockPraiseAndCheerMessage = new Mock<IPraiseAndCheerMessage>();
         mockPraiseAndCheerMessage.Setup(_ => _.GetRandomCheerMessage()).Returns("Не сдавайтесь\\! 🙏");
         
-        var messageFormatter = new MessageFormer(new TimeFormatter(), mockPraiseAndCheerMessage.Object);
+        var messageFormatter = new MessageFormer(new TimeFormatter(), mockPraiseAndCheerMessage.Object, new MeditationMessageProvider());
         var mockTelegramMessageSender = new Mock<ITelegramMessageSender>();
         mockTelegramMessageSender.Setup(_ => _.SendMessage(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new SendingResult()
@@ -151,13 +151,13 @@ public class CalculateResultServiceTests
             });
         var dateTimeService = new Mock<IDateTimeService>();
         dateTimeService.Setup(_ => _.GetDateTimeUtcNow())
-            .Returns(DateTime.Parse("2024-07-24T20:58:57Z"));
+            .Returns(DateTime.Parse("2024-07-24T21:00:57Z"));
         dateTimeService.Setup(_ => _.GetDateTimeNow(It.Is<TimeSpan>(ts => ts == TimeSpan.FromHours(3))))
-            .Returns(DateTime.Parse("2024-07-24T23:58:57Z"));
+            .Returns(DateTime.Parse("2024-07-25T00:01:57Z"));
         dateTimeService.Setup(_ => _.GetDateTimeNow(It.Is<TimeSpan>(ts => ts == TimeSpan.FromHours(8))))
-            .Returns(DateTime.Parse("2024-07-25T04:58:57Z"));
+            .Returns(DateTime.Parse("2024-07-25T05:00:57Z"));
         dateTimeService.Setup(_ => _.GetDateTimeNow(It.Is<TimeSpan>(ts => ts == TimeSpan.FromHours(-5))))
-            .Returns(DateTime.Parse("2024-07-24T15:58:57Z"));
+            .Returns(DateTime.Parse("2024-07-24T16:01:57Z"));
         var messagesStore = new MessagesStore(mockJsonLoaderForMessagesStore.Object);
         var counterService = new CounterService(mockJsonLoader.Object, dateTimeService.Object);
         
@@ -184,6 +184,68 @@ public class CalculateResultServiceTests
             Times.Once);
         
         var expectedMessage = "Общее время медитации 123 \\(2 часа 3 минуты\\)\nНа 197 меньше чем вчера\\. Не сдавайтесь\\! 🙏\n\nМедитируют 3 дня подряд:\n \\- Anna Po \\(@AnnaPot23\\)\n \\- Marina Kovalenko \\(@marina\\_yogina\\)";
+        mockTelegramMessageSender.Verify(
+            _ => _.SendMessage(
+                It.Is<string>(chatId => chatId == "-1002065988567"),
+                It.Is<string>(message => message == expectedMessage),
+                It.Is<string>(lang => lang == "ru"),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+        
+        Assert.Single(result);
+    }
+    
+    [Fact]
+    public async Task CalculateAndSendHabitTest()
+    {
+        var mockJsonLoader = GetMockJsonLoader();
+        var mockJsonLoaderForMessagesStore = GetMockJsonLoaderForMessageStore();
+        var mockPraiseAndCheerMessage = new Mock<IPraiseAndCheerMessage>();
+        mockPraiseAndCheerMessage.Setup(_ => _.GetRandomCheerMessage()).Returns("Не сдавайтесь\\! 🙏");
+        
+        var messageFormatter = new MessageFormer(new TimeFormatter(), mockPraiseAndCheerMessage.Object, new HabitMessageProvider());
+        var mockTelegramMessageSender = new Mock<ITelegramMessageSender>();
+        mockTelegramMessageSender.Setup(_ => _.SendMessage(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new SendingResult()
+            {
+                IsSuccess = true,
+            });
+        var dateTimeService = new Mock<IDateTimeService>();
+        dateTimeService.Setup(_ => _.GetDateTimeUtcNow())
+            .Returns(DateTime.Parse("2024-07-24T21:00:57Z"));
+        dateTimeService.Setup(_ => _.GetDateTimeNow(It.Is<TimeSpan>(ts => ts == TimeSpan.FromHours(3))))
+            .Returns(DateTime.Parse("2024-07-25T00:01:57Z"));
+        dateTimeService.Setup(_ => _.GetDateTimeNow(It.Is<TimeSpan>(ts => ts == TimeSpan.FromHours(8))))
+            .Returns(DateTime.Parse("2024-07-25T05:00:57Z"));
+        dateTimeService.Setup(_ => _.GetDateTimeNow(It.Is<TimeSpan>(ts => ts == TimeSpan.FromHours(-5))))
+            .Returns(DateTime.Parse("2024-07-24T16:01:57Z"));
+        var messagesStore = new MessagesStore(mockJsonLoaderForMessagesStore.Object);
+        var counterService = new CounterService(mockJsonLoader.Object, dateTimeService.Object);
+        
+        var calculateResultService = new CalculateResultService(
+            messageFormatter,
+            mockJsonLoader.Object,
+            mockTelegramMessageSender.Object,
+            counterService,
+            new CalculateContinuouslyService(),
+            messagesStore,
+            dateTimeService.Object,
+            Mock.Of<ILogger<CalculateResultService>>());
+
+        var result = await calculateResultService.CalculateTotalResultsAndSend();
+
+        // should execute clean on message store
+        mockJsonLoaderForMessagesStore.Verify(
+            _ => _.SaveToJsonAsync(It.IsAny<string>(), It.Is<List<MessageLog>>(messages => messages.Count == 0), It.IsAny<string>(), It.IsAny<bool>()),
+            Times.Once);
+        
+        // should execute for save new counter
+        mockJsonLoader.Verify(
+            _ => _.SaveToJsonAsync(It.IsAny<string>(), It.Is<CounterDto>(counter => counter.Yesterday == TimeSpan.FromMinutes(123) && counter.Today == TimeSpan.Zero), It.IsAny<string>(), It.IsAny<bool>()),
+            Times.Once);
+        
+        var expectedMessage = "Общее время полезных привычек 123 \\(2 часа 3 минуты\\)\nНа 197 меньше чем вчера\\. Не сдавайтесь\\! 🙏\n\n3 дня подряд:\n \\- Anna Po \\(@AnnaPot23\\)\n \\- Marina Kovalenko \\(@marina\\_yogina\\)";
         mockTelegramMessageSender.Verify(
             _ => _.SendMessage(
                 It.Is<string>(chatId => chatId == "-1002065988567"),

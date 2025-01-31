@@ -75,13 +75,13 @@ public class CalculateContinuouslyServiceTests
                     Username = "AnnaPot23",
                     Total = TimeSpan.FromMinutes(180),
                     ContinuouslyDays = 1,
-                    LastMeditation = DateTime.UtcNow.AddHours(-2),
+                    LastMeditation = DateTime.Parse("2024-07-24T23:58:52Z"),
                 }
             }
         };
         
         var calculateContinuouslyService = new CalculateContinuouslyService();
-        calculateContinuouslyService.CalculateContinuouslyDays(counterDto, DateTime.UtcNow);
+        calculateContinuouslyService.CalculateContinuouslyDays(counterDto, DateTime.Parse("2024-07-25T00:00:52Z"));
         
         Assert.Equal(0, counterDto.Participants[0].ContinuouslyDays);
         Assert.Equal(2, counterDto.Participants[1].ContinuouslyDays);

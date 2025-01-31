@@ -6,11 +6,15 @@ public interface ITelegramBotService
 {
     void Initialize(string key, string username);
 
-     Task<Message> SendInstructionMessageAsync(
+    Task<ChatMember[]> GetChatAdministratorsAsync(
+        long chatIdLong,
+        CancellationToken cancellationToken);
+
+    Task<Message> SendInstructionMessageAsync(
         long chatIdLong,
         CancellationToken cancellationToken,
         int? messageId);
-     
+
     Task<Message> SendStartOrHelpMessageAsync(
         long chatIdLong,
         string textKey,

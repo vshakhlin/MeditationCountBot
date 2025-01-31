@@ -39,8 +39,11 @@ public class TimeParserHelper
         foreach (Match match in Regex.Matches(text, BasePattern, RegexOptions.IgnoreCase))
         {
             var minutes = match.Value.Replace("+", "");
-            var parseMinutes = TimeSpan.FromMinutes(int.Parse(minutes));
-            baseTime += parseMinutes;
+            if (int.TryParse(minutes, out var parseMinutestInt))
+            {
+                var parseMinutes = TimeSpan.FromMinutes(parseMinutestInt);
+                baseTime += parseMinutes;
+            }
         }
 
         return baseTime;

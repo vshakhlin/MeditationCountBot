@@ -12,11 +12,29 @@ builder.Services.AddLogging(b =>
 
     b.AddSerilog(logger);
 });
+
+if (!bool.TryParse(Environment.GetEnvironmentVariable("IS_HABIT"), out bool isHabit))
+{
+    isHabit = false;
+}
+
 builder.Services.AddControllers();
 builder.Services.AddTransient<ITelegramMessageSender, TelegramMessageSender>();
 builder.Services.AddTransient<IJsonLoader, JsonLoader>();
 builder.Services.AddTransient<ICalculateContinuouslyService, CalculateContinuouslyService>();
+builder.Services.AddTransient<IFreeTextMessageSender, FreeTextMessageSender>();
+builder.Services.AddTransient<IReCalculateResultService, ReCalculateResultService>();
+builder.Services.AddTransient<ILogReader, LogReader>();
 builder.Services.AddTransient<ITimeFormatter, TimeFormatter>();
+if (isHabit)
+{
+    builder.Services.AddTransient<IMessageProvider, HabitMessageProvider>();
+}
+else
+{
+    builder.Services.AddTransient<IMessageProvider, MeditationMessageProvider>();
+}
+
 builder.Services.AddTransient<IMessageFormer, MessageFormer>();
 builder.Services.AddTransient<ICalculateResultService, CalculateResultService>();
 builder.Services.AddTransient<IPraiseAndCheerMessage, PraiseAndCheerMessage>();

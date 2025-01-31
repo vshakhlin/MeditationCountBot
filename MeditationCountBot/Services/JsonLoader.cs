@@ -2,17 +2,11 @@ using System.Text.Json;
 
 namespace MeditationCountBot.Services;
 
-public class JsonLoader : IJsonLoader
+public class JsonLoader(ILogger<JsonLoader> logger) : IJsonLoader
 {
+    public const string BackupPath = "../backup";
     public const string ChatsPath = "../chats";
     public const string MessageLogPath = "../messages";
-
-    private readonly ILogger<JsonLoader> _logger;
-
-    public JsonLoader(ILogger<JsonLoader> logger)
-    {
-        _logger = logger;
-    }
 
     public async Task<Dictionary<string, T>> LoadAllJsons<T>(string path)
     {
@@ -30,6 +24,11 @@ public class JsonLoader : IJsonLoader
 
         return dictObjects;
     }
+    
+    public async Task Backup<T>(string chatId, T counter)
+    {
+        await SaveToJsonAsync(chatId, counter, BackupPath, false);
+    }
 
     private async Task<T> LoadFromJson<T>(string filePath)
     {
@@ -46,7 +45,7 @@ public class JsonLoader : IJsonLoader
         });
         if (log)
         {
-            _logger.LogInformation(savedDtoJson);
+            logger.LogInformation(savedDtoJson);
         }
 
         try
@@ -57,21 +56,21 @@ public class JsonLoader : IJsonLoader
         catch (DirectoryNotFoundException dirNotFoundException)
         {
             // Create and try again
-            _logger.LogError(dirNotFoundException, ("DirectoryNotFoundException"));
+            logger.LogError(dirNotFoundException, ("DirectoryNotFoundException"));
         }
         catch (UnauthorizedAccessException unauthorizedAccessException)
         {
             // Show a message to the user
-            _logger.LogError(unauthorizedAccessException, $"UnauthorizedAccessException {unauthorizedAccessException.Message}");
+            logger.LogError(unauthorizedAccessException, $"UnauthorizedAccessException {unauthorizedAccessException.Message}");
         }
         catch (IOException ioException)
         {
-            _logger.LogError(ioException, $"IOException {ioException.Message}");
+            logger.LogError(ioException, $"IOException {ioException.Message}");
             // Show a message to the user
         }
         catch (Exception exception)
         {
-            _logger.LogError(exception, $"Exception {exception.Message}");
+            logger.LogError(exception, $"Exception {exception.Message}");
             // Show general message to the user
         }
     }

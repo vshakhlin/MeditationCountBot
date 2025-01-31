@@ -36,6 +36,8 @@ public class CalculateResultService : ICalculateResultService
     
     public async Task<List<string>> CalculateTotalResultsAndSend()
     {
+        _logger.LogInformation("Start backup");
+        
         _logger.LogInformation($"Start calculation {_dateTimeService.GetDateTimeUtcNow()}");
 
         var results = new List<string>();
@@ -49,12 +51,14 @@ public class CalculateResultService : ICalculateResultService
             }
             
             var now = _dateTimeService.GetDateTimeNow(counter.Settings.TimeZone);
-            if (now.Hour != 23)
+            if (now.Hour != 0)
             {
                 continue;
             }
+            
+            await _jsonLoader.Backup(counter.ChatId, counter);
 
-            _calculateContinuouslyService.CalculateContinuouslyDays(counter, _dateTimeService.GetDateTimeUtcNow());
+            _calculateContinuouslyService.CalculateContinuouslyDays(counter, now);
             var message = _messageFormer.CreateMessage(counter);
             _logger.LogInformation(message);
             

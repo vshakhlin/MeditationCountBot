@@ -8,7 +8,7 @@ public class CalculateContinuouslyService : ICalculateContinuouslyService
     {
         foreach (var participantDto in counterDto.Participants)
         {
-            if (participantDto.LastMeditation.Date == dateTime.Date)
+            if (participantDto.LastMeditation.Date == dateTime.AddDays(-1).Date)
             {
                 participantDto.ContinuouslyDays += 1;
             }

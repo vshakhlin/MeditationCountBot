@@ -31,6 +31,12 @@ public class TimeParserHelperTest
     }
     
     [Fact]
+    public void BigInt()
+    {
+        Assert.Equal(TimeSpan.Zero, TimeParserHelper.ParseTime("Запись по телефону: [+79098227286]"));
+    }
+    
+    [Fact]
     public void StandartTest()
     {
         Assert.Equal(TimeSpan.FromMinutes(20), TimeParserHelper.ParseTime("+20 = 415"));
